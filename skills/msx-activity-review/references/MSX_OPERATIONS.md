@@ -6,7 +6,56 @@ Resolve schema with `msxdata://schema/{entity}` / `dataverse_metadata` when unsu
 
 ## Reads
 
-**Q1 Identity**: `msx_auth_status`; fallback `WhoAmI` via `dataverse_query`. Must equal the review owner in § 3.3 onward.
+**Q0 Full current portfolio (before activity searches)**: after Q1, load
+`account-explorer` and its `references/dataverse/accounts.md` personal account
+scope recipe, plus `references/dataverse/retrieval.md` from the installed plugin.
+Use the current tool schemas; do not invent pagination parameters.
+
+1. Read `savedqueries` with `select=savedqueryid,name,fetchxml` and
+   `filter=returnedtypecode eq 'account' and name eq 'My Team Accounts' and statecode eq 0`.
+   Use `paginate=true`; collect `structuredContent.data.records`, not the text preview.
+   Follow each exact `meta.nextCursor` using the same entity set, omitting the original
+   query fields on resume. Missing or ambiguous active views block resolution; do not
+   pick the first match or substitute My Accounts, ownership, or the role feed.
+2. Inspect the chosen FetchXML. Retain its `team`/`teammembership` current-user
+   predicate (`eq-userid`) and active-account filters, plus all other population
+   predicates. Add `accountid,name,msp_mstopparentid` attributes if absent. Do not
+   replace the membership with a stored user ID, guessed template, or mailbox roster.
+   If the definition lacks or ambiguously implements the expected membership/active
+   filters, stop and report the discrepancy rather than rewriting the population.
+3. Execute that definition with `dataverse_fetchxml entity_set="accounts"`,
+   `paginate=true`, `max_records=5000`. The tool follows valid cookies internally,
+   or simple page numbers only when the service explicitly reports more rows with
+   no cookie. Malformed cookies are errors. There is **no FetchXML cross-call cursor**;
+   neither guessed cookies nor `max_records` above 5000 are supported.
+4. Inspect `partial`, `meta.hasMore`, `meta.truncated`, warnings and errors after
+   every response. A reached budget or failed later page is incomplete, even if many
+   rows were returned. For capped FetchXML, partition the *same view* with additional
+   disjoint, exhaustive account filters supported by the service (for example
+   half-open account creation-time ranges spanning the entire population). Preserve
+   every original predicate; resolve unknown boundaries first. Split any capped
+   partition further. If exhaustive supported partitioning cannot be established,
+   retain the diagnostics, mark incomplete and stop before activity searches.
+5. Deduplicate repeated `accountid` rows across pages/partitions, merging verified
+   names and aliases. Group shared non-null TPIDs for cross-reference, but **do not
+   discard distinct CRM accounts or their names**; each unique account ID remains
+   a search target. Missing TPIDs remain null, not an invented value or a shared
+   null group. Missing IDs/names or conflicting mappings require verified backfill;
+   unresolved records make resolution incomplete.
+6. Record owner ID, selected view ID, resolution timestamp, unique accounts,
+   retrieval diagnostics and source label **My Team Accounts (access-team membership)**.
+   Verify Q1 again after resolution; changed identity invalidates the roster and
+   requires a fresh resolution. No saved roster is a fallback.
+   Complete requires source exhaustion, no outstanding failure, and usable identities
+   for every row; a count alone cannot prove completeness. Report an exhausted empty
+   view explicitly without claiming the user has no accounts in other scopes.
+
+**Q1 Identity**: `msx_auth_status`; only `data.status=ready` establishes healthy
+authentication. If the diagnostic does not expose the signed-in Dataverse user ID,
+use the installed core's supported read-only WhoAmI operation (discover the current
+tool contract; do not assume WhoAmI is an entity set). Verify the active user record
+and display the identity. Failure or ambiguity blocks the run. Must equal the review
+owner in § 3.3 onward; no identity comes from memory, config or a prior review.
 
 **Q2 Catalog**
 - Opportunities: `opportunities`, `select=opportunityid,name,msp_opportunitynumber,_parentaccountid_value,statecode` (`msp_opportunitynumber` is the "MSX ID" shown to the SE as the opportunity ID).

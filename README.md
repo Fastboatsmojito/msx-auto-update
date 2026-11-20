@@ -17,25 +17,58 @@ Teammates need read access to this private repo.
 
 1. Clone it: `gh repo clone Fastboatsmojito/msx-auto-update`
 2. Copy the skill folder into your personal skills folder:
-   - Windows: `Copy-Item -Recurse .\msx-auto-update\skills\msx-activity-review $HOME\.copilot\skills\`
+   - Windows (from the directory containing the clone):
+     ```powershell
+     $destination = Join-Path $HOME '.copilot\skills\msx-activity-review'
+     New-Item -ItemType Directory -Force $destination | Out-Null
+     Copy-Item -Path .\msx-auto-update\skills\msx-activity-review\* -Destination $destination -Recurse -Force
+     ```
    - macOS/Linux: `cp -R msx-auto-update/skills/msx-activity-review ~/.copilot/skills/`
 3. Restart the GitHub Copilot app (or start a new session) and say **"run my MSX review"**.
 
-To update later: `git pull` and copy the folder again.
+To update after merge: inside the clone run `git switch main` and
+`git pull --ff-only`, then copy the skill's **contents** into the existing
+`msx-activity-review` folder again (Windows: `Copy-Item -Path
+.\skills\msx-activity-review\* -Destination $destination -Recurse -Force`).
+On macOS/Linux use `mkdir -p ~/.copilot/skills/msx-activity-review` and
+`cp -R skills/msx-activity-review/. ~/.copilot/skills/msx-activity-review/`.
+Start a new Copilot session. Installation does not run a review or write to MSX.
+
+For an **unmerged pull request**, run `gh pr checkout <PR URL>` inside the clone
+before copying; this installs the proposed branch, not released `main`. Return to
+`main` and update after merge. Do not copy local review state or config between users.
 
 ## How a run looks
 
 1. You pick the window (default: last 7 days) and whether new milestones may be created this run (default: no).
-2. The agent reads your calendar, transcripts, email and Teams (read-only) and opens a **"Your week in MSX"** page in the side panel.
-3. One card per piece of work. Each card shows the opportunity and milestone (name + MSX ID), an editable **HoK entry** and an optional **milestone update**, each with **Include / Skip**.
+2. The agent verifies the signed-in MSX user and freshly resolves that user's
+   **complete My Team Accounts** view before activity searches. It preserves the
+   current-user access-team membership and active-account filters, follows supported
+   pagination and deduplicates accounts; this is not an ownership/assignment roster.
+   There is no fixed user, account list or expected count. Only an explicit account
+   restriction narrows the search set, after full portfolio resolution.
+3. It searches **each account individually**, with verified names/aliases, across
+   the exact requested window and selected sources (calendar, transcripts, email,
+   Teams by default), then opens **"Your MSX activity review"**. The page shows the
+   resolved count and every account's search status, source/time/term gaps, caps and
+   failures. Incomplete portfolio resolution stops drafting; a saved roster is not
+   a fallback. "All accounts searched" does not mean exhaustive evidence coverage,
+   and no returned passages does not mean no activity.
+4. One card per piece of work. Each card shows the opportunity and milestone (name + MSX ID), an editable **HoK entry** and an optional **milestone update**, each with **Include / Skip**.
    - Wrong opportunity? **Change opportunity** and type its ID; the agent picks a best-guess milestone for you to confirm.
    - Similar HoK already on the milestone? The card says so and won't log a duplicate.
-4. Click **Finish review**, then type **post to msx** in chat. The page has no write button by design.
-5. The agent re-checks live MSX, shows the final list, and writes only after you say **yes** (MSX also prompts per write).
+5. Click **Finish review**, then type **post to msx** in chat. The page has no write button by design.
+6. The agent re-checks live MSX, shows the final list and coverage limitations, and writes only after you say **yes** (MSX also prompts per write).
+
+Use **"Run my MSX review for the last 7 days"** for the default full portfolio.
+To narrow explicitly: **"Run my MSX review for [exact window], only for [account],
+using email and transcripts."** Each teammate must sign in with their own MSX user;
+the installer does not supply identity or portfolio data. Old reviews without
+verified owner/portfolio provenance must be re-drafted before processing.
 
 ## Prerequisites
 
-- The **`msx-mcp`** plugin (skills `msx-write`, `core`, `quota`; MSX tools), corporate VPN and MSX sign-in.
+- The **`msx-mcp`** plugin (skills `msx-write`, `core`, `quota`, `account-explorer`; MSX tools), corporate VPN and MSX sign-in.
 - M365 read tools for calendar, transcripts, email and Teams.
 - A client with a **browser canvas** (GitHub Copilot app). Without one the skill falls back to chat-only review.
 
@@ -61,6 +94,8 @@ skills/msx-activity-review/
 |---|---|
 | Where it runs | Interactive chat in the GitHub Copilot app; no scheduled writes |
 | Evidence | Calendar, transcripts, email, Teams. Highly Confidential content stays in chat only |
+| Account scope | Fresh signed-in user's complete My Team Accounts view; explicit restrictions only; no cached roster fallback |
+| Coverage | Per-account/source/window/verified-term attempts; successful searches are not proof of exhaustive evidence or no activity |
 | Local state | `%LOCALAPPDATA%\MSXActivityReview\`, non-synced, 90-day retention |
 | Matching | Pre-select only at high confidence; otherwise the SE chooses |
 | Duplicates | One Task per SE + milestone + category, any status |
@@ -75,6 +110,20 @@ skills/msx-activity-review/
 
 ## Testing the page
 
+Run the dependency-free package/coverage validation with Node.js 22 or later:
+
+```powershell
+node --test .\scripts\validate.test.mjs
+```
+
+It executes the actual template with a minimal offline DOM using synthetic users,
+different portfolio sizes, caps, pagination-shaped duplicate rows, incomplete
+retrieval, missing sources/aliases/time intervals, explicit scope restrictions and
+owner changes. It also checks package links and the procedural retrieval/safeguard
+contracts. These checks do **not** validate live MSX or M365 connectors and do not
+query or write to MSX. Provider pagination is governed by the installed plugin's
+current schema, not simulated as a new retrieval implementation here.
+
 Render the template with the demo data (Node.js), then open `review.html` in a browser:
 
 ```powershell
@@ -86,6 +135,22 @@ fs.writeFileSync("review.html",fs.readFileSync(a+"review-template.html","utf8").
 ```
 
 Verified in the app's browser panel: the local file loads, scripts and `localStorage` work, `evaluate_javascript` can read state; approvals, collisions, resets, milestone proposals, change opportunity (known/unknown ID), best-guess confirmation, duplicate flag on a re-picked milestone, title hints, preview, and Finish review / Make more changes behave as designed.
+
+## Contributing and publication
+
+Use a topic branch and submit a pull request to `main`; do not merge without the
+maintainer's explicit approval. Keep the skill, contracts, template, synthetic tests
+and install/usage instructions consistent. Run the validation above and
+`git diff --check`, then inspect the **entire staged diff and file list** before
+pushing. Publish only reusable skill code/docs and synthetic fixtures/tests.
+
+Never add customer/account rosters, customer evidence, review or decision files,
+local configuration, credentials, logs or browser state. Do not copy the local
+state folder or recursively import a personal skill directory; review specific
+reusable files and stage them explicitly. `.gitignore` is defense in depth, not a
+substitute for inspection. Publishing must not invoke MSX write tools, login as a
+teammate, run customer reviews, or weaken evidence/duplicate/confidentiality/approval
+safeguards.
 
 ## Open items
 

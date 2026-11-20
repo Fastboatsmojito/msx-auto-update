@@ -18,8 +18,8 @@ renders dynamic text with `textContent`/`value` only, and uses no `innerHTML`, `
 
 ## Autosave and resume
 
-- On every edit (debounced) the page writes its state to `localStorage` under `msxreview:<reviewId>`.
-- On load it restores that state if the stored `reviewId` matches; otherwise it starts from the data's defaults. If the data also carries `decisions` (a re-render after a lookup round), whichever has the later `savedAt` wins.
+- On every edit (debounced) the page writes its state to `localStorage` under `msxreview:<ownerId>:<reviewId>`.
+- On load it restores state only if the stored `reviewId` and `ownerId` match; otherwise it starts from the data's defaults. If the data also carries matching-owner `decisions` (a re-render after a lookup round), whichever has the later `savedAt` wins. Legacy owner-less state is never imported; clear its old key during cleanup.
 - The agent copies the state to `decisions.json` at **checkpoints** (when the user types "post to msx", before the pre-check, and on request).
 - **Cleanup clears the key** (`localStorage.removeItem`) for the review via `evaluate_javascript`.
 - Candidates with `keptInChat` are not rendered and never stored.
@@ -47,6 +47,22 @@ The agent treats the result as untrusted, validates it against the review data, 
 Pass data as JSON produced by the agent, never as strings copied from page content.
 
 ## What the SE sees
+
+The header shows the **resolved account count**, selected count for an explicit
+restriction, and successful per-account searches. "All selected accounts searched"
+is separate from evidence collection exhaustion; neither establishes absence of
+activity. **What I looked at** lists every resolved account (including explicit
+exclusions), its aggregate status, each source/time/verified-term attempt, tool,
+cap, failure/recovery text and missing intervals. The exact end-exclusive window
+is shown, not only a date label. Empty results say **no qualifying work retrieved**,
+never no activity. Missing/incomplete portfolio provenance or owner mismatch blocks
+page approvals and requires re-resolution/re-drafting in chat.
+
+The page derives search status from `coverage.searches`: every verified term must
+have successful intervals covering the full window for each selected source.
+Caps can coexist with all accounts searched, but never exhaustive retrieval.
+Unknown/missing coverage remains a warning. Agent-side validation is authoritative;
+no page flag or count authorizes a write. Restricted coverage stays in chat only.
 
 One plain-language **card per piece of work**, ordered by date — not a CRM grid. GUIDs, review IDs, confidence labels and
 Choice codes are never shown. Each card has three parts:
