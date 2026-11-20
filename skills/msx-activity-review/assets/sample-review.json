@@ -10,7 +10,33 @@
     "window": { "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z" },
     "options": { "allowMilestoneCreation": true },
     "owner": { "id": "00000000-0000-0000-0000-000000000001", "displayName": "Demo SE", "email": "demo.se@example.com" },
+    "accountScope": {
+      "source": "My Team Accounts", "savedQueryId": "00000000-0000-0000-0000-0000000000f1",
+      "ownerId": "00000000-0000-0000-0000-000000000001", "resolvedAt": "2026-11-20T21:00:00Z",
+      "complete": true, "note": "Entirely fictional demo portfolio", "restriction": null,
+      "accounts": [
+        { "accountId": "00000000-0000-0000-0000-0000000000e1", "name": "Contoso", "tpid": null, "aliases": [], "searchStatus": "passages-returned" },
+        { "accountId": "00000000-0000-0000-0000-0000000000e2", "name": "Fabrikam", "tpid": null, "aliases": [], "searchStatus": "passages-returned" },
+        { "accountId": "00000000-0000-0000-0000-0000000000e3", "name": "Northwind", "tpid": null, "aliases": [], "searchStatus": "passages-returned" }
+      ]
+    },
     "coverage": {
+      "selectedSources": ["calendar", "transcript", "email", "teams"],
+      "complete": false,
+      "searches": [
+        { "accountId": "00000000-0000-0000-0000-0000000000e1", "type": "calendar", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Contoso"], "tool": "synthetic-read", "status": "passages-returned", "items": 10, "capped": false, "exhaustive": false, "note": "Synthetic ranked answer", "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e1", "type": "transcript", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Contoso"], "tool": "synthetic-read", "status": "passages-returned", "items": 2, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e1", "type": "email", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Contoso"], "tool": "synthetic-read", "status": "passages-returned", "items": 70, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e1", "type": "teams", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Contoso"], "tool": "synthetic-read", "status": "passages-returned", "items": 40, "capped": true, "exhaustive": false, "note": "Synthetic passage cap", "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e2", "type": "calendar", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Fabrikam"], "tool": "synthetic-read", "status": "passages-returned", "items": 10, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e2", "type": "transcript", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Fabrikam"], "tool": "synthetic-read", "status": "passages-returned", "items": 2, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e2", "type": "email", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Fabrikam"], "tool": "synthetic-read", "status": "passages-returned", "items": 70, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e2", "type": "teams", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Fabrikam"], "tool": "synthetic-read", "status": "passages-returned", "items": 40, "capped": true, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e3", "type": "calendar", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Northwind"], "tool": "synthetic-read", "status": "passages-returned", "items": 11, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e3", "type": "transcript", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Northwind"], "tool": "synthetic-read", "status": "passages-returned", "items": 2, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e3", "type": "email", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Northwind"], "tool": "synthetic-read", "status": "passages-returned", "items": 74, "capped": false, "exhaustive": false, "gaps": [] },
+        { "accountId": "00000000-0000-0000-0000-0000000000e3", "type": "teams", "start": "2026-11-13T21:00:00Z", "end": "2026-11-20T21:00:00Z", "terms": ["Northwind"], "tool": "synthetic-read", "status": "passages-returned", "items": 40, "capped": true, "exhaustive": false, "gaps": [] }
+      ],
       "sources": [
         { "type": "calendar", "searched": true, "items": 31, "capped": false, "note": "" },
         { "type": "transcript", "searched": true, "items": 6, "capped": false, "note": "" },

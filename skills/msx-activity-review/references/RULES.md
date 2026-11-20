@@ -14,6 +14,47 @@ If anything here disagrees with `msx-write`, **`msx-write` wins**.
 - Store short references only (type, date, title/subject, max 200 chars). No bodies, transcripts or attachments.
 - Highly Confidential content (or uncertain storage permission) stays in chat only.
 
+## Portfolio and search coverage
+
+- Resolve the full **current My Team Accounts** view for the freshly verified
+  signed-in user before activity searches. Preserve current-user membership and
+  active-account filters. Only explicit user requests may narrow account scope;
+  record the requested restriction and exclusions after full resolution.
+- Never hard-code identities, account lists or expected portfolio sizes. Missing,
+  denied, ambiguous, malformed, failed or capped portfolio retrieval MUST stop
+  drafting, not fall back to remembered accounts. A source-exhausted empty view
+  is an explicit empty-view result, not evidence of no activity.
+- Search each unique resolved CRM account individually, including every verified
+  name/alias. Shared TPIDs do not discard distinct account records. Aliases MUST
+  come from authoritative account data or user-confirmed mappings; keep a short
+  provenance reference. Do not invent abbreviations or infer alias identity from
+  a search hit. Missing alias enrichment is a disclosed limitation, not a reason
+  to skip the verified name.
+- For each selected source, cover the exact half-open interval `[start,end)`.
+  Partition at supported boundaries and deduplicate evidence by stable source ID;
+  overlapping searches may retrieve the same work. If a connector has only coarse
+  date filters, search a covering interval and filter returned evidence to the exact
+  window; record the precision/ranking limitation. Do not expand eligible evidence.
+- Log one `coverage.searches` entry per account/source/time/term attempt. Record
+  pending, passages returned, no passages returned, or failed; items count retrieved
+  passages, not eligible activities. Account status is partial when any selected
+  source, time segment or verified term is missing/failed. Record exact tool name,
+  cap and concise error/recovery text, without source bodies or sensitive diagnostics.
+- Exhaust supported pagination. Ranked answers, finite passage limits and unavailable
+  transcripts are evidence gaps even after every account was searched. A query
+  returning zero passages MUST NOT be described as no activity. Set `exhaustive`
+  only for a fully exhausted collection with verified source/time/term coverage;
+  missing metadata or a ranked answer means false. `coverage.complete` means complete
+  retrieval of the selected accessible evidence, never proof of all real-world work.
+- Candidate/connector budgets MUST NOT silently truncate the account loop. Continue
+  searching all targets, or disclose remaining accounts/sources/intervals as pending
+  gaps. Show the unique resolved account count, selected count, each account's status,
+  failures/caps and source/time gaps on the page and in chat; distinguish **all selected
+  accounts searched** from **exhaustive evidence retrieval**.
+- Coverage metadata inherits source confidentiality. Highly Confidential/unclear
+  permissions stay in chat, including revealing aliases, query terms or error details.
+  Use a generic redacted gap on the page; never serialize restricted content.
+
 ## Candidates
 
 - One candidate per discrete deliverable, decision or intervention; combine related meetings/emails, even across weeks.

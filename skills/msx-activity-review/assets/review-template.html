@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your week in MSX</title>
+<title>Your MSX activity review</title>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--soft:#f1f3f5;--line:#e2e5ea;--text:#1c1f24;--muted:#646b76;--accent:#0f6cbd;--accent-soft:#e8f1fb;--good:#1a7f37;--good-soft:#eaf6ed;--warn:#8a5a00;--warn-soft:#fdf4de}
 @media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1c2027;--soft:#242933;--line:#343a46;--text:#e8ebf0;--muted:#9aa3b2;--accent:#5aa9f0;--accent-soft:#1d3247;--good:#56d364;--good-soft:#16301e;--warn:#e3b341;--warn-soft:#3a2f12}}
@@ -82,7 +82,7 @@ dialog{max-width:720px;width:92vw;border:1px solid var(--line);border-radius:12p
 </head>
 <body>
 <div class="wrap">
-  <h1>Your week in MSX</h1>
+  <h1>Your MSX activity review</h1>
   <div class="sub" id="who"></div>
   <div class="chips" id="chips"></div>
   <div id="finished" class="finished" hidden><span><b>Review finished.</b> Go back to chat and type <b>post to msx</b>. I&rsquo;ll re-check everything against live MSX and show you the final list before anything is written.</span><button id="reopen" type="button">Make more changes</button></div>
@@ -106,7 +106,8 @@ dialog{max-width:720px;width:92vw;border:1px solid var(--line);border-radius:12p
 'use strict';
 var D=JSON.parse(document.getElementById('msxr-data').textContent);
 var R=D.review,CATS=D.categories||[],LIM=(D.config&&D.config.limits)||{subject:200,description:12000,comment:4000};
-var ALLOW_MS=!!(R.options&&R.options.allowMilestoneCreation),KEY='msxreview:'+R.reviewId,DEMO=!!D.demo;
+var ALLOW_MS=!!(R.options&&R.options.allowMilestoneCreation),KEY='msxreview:'+R.owner.id+':'+R.reviewId,DEMO=!!D.demo;
+var COVER=coverageReport();
 var catalog={},oppById={},checks={};
 (R.catalog||[]).forEach(function(c){catalog[c.id]=c;if(!c.milestoneId)oppById[c.opportunityId]=c});
 (R.checks||[]).forEach(function(c){checks[c.milestoneId]=c});
@@ -126,12 +127,101 @@ function uniq(a){return a.filter(function(x,i){return a.indexOf(x)===i})}
 function q(s){return '\u201c'+s+'\u201d'}
 function sentence(parts){return parts.length<2?parts.join(''):parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]}
 
+function coverageReport(){
+  var scope=R.accountScope,cv=R.coverage||{},accounts=scope&&scope.accounts||[],seen=Object.create(null),errors=[],rows=[];
+  var sources=uniq(cv.selectedSources||[]),start=Date.parse(R.window.start),end=Date.parse(R.window.end);
+  if(!scope||scope.complete!==true||scope.source!=='My Team Accounts'||!scope.savedQueryId||!isFinite(Date.parse(scope.resolvedAt)))errors.push('Portfolio resolution incomplete or missing; re-resolve before drafting.');
+  if(scope&&scope.ownerId!==R.owner.id)errors.push('Portfolio owner differs from the signed-in review owner; re-resolve.');
+  accounts.forEach(function(a){if(!a.accountId||!a.name||seen[a.accountId])errors.push('Unresolved or duplicate account record; re-resolve.');seen[a.accountId]=true});
+  if(!accounts.length)errors.push('My Team Accounts returned no resolved accounts; no activity absence established.');
+  var restriction=scope&&scope.restriction,selected=restriction&&restriction.accountIds;
+  if(restriction&&(!restriction.request||!Array.isArray(selected)||!selected.length||selected.some(function(id){return !seen[id]})))errors.push('Invalid explicit account restriction.');
+  if(!sources.length)errors.push('Selected sources missing; coverage unknown.');
+  if(!isFinite(start)||!isFinite(end)||start>=end)errors.push('Invalid requested window.');
+  var searches=cv.searches||[],gaps=(cv.gaps||[]).slice(),complete=errors.length===0&&cv.complete===true;
+  if((cv.sources||[]).some(function(s){return s.capped||!s.searched}))complete=false;
+  function covers(entries){
+    var at=start;
+    entries.sort(function(a,b){return Date.parse(a.start)-Date.parse(b.start)}).forEach(function(x){
+      var lo=Date.parse(x.start),hi=Date.parse(x.end);
+      if(lo<=at&&hi>at)at=hi;
+    });
+    return at>=end;
+  }
+  accounts.forEach(function(a){
+    var included=!restriction||Array.isArray(selected)&&selected.indexOf(a.accountId)>=0;
+    var ar={account:a,included:included,status:'pending',searches:[],gaps:[]};
+    if(!included){ar.status='explicitly out of scope';rows.push(ar);return}
+    var terms=uniq([a.name].concat((a.aliases||[]).map(function(x){return x.name}))),attempts=searches.filter(function(x){return x.accountId===a.accountId});
+    var returned=false,successful=0,all=sources.length>0,exhaustive=true;
+    (a.aliases||[]).forEach(function(x){if(!x.name||!x.ref){ar.gaps.push('Unverified alias; coverage unknown.');all=false}});
+    sources.forEach(function(type){
+      var entries=attempts.filter(function(x){return x.type===type});
+      entries.forEach(function(x){
+        var valid=Date.parse(x.start)>=start&&Date.parse(x.end)<=end&&Date.parse(x.start)<Date.parse(x.end);
+        var ok=valid&&(x.status==='passages-returned'||x.status==='no-passages-returned');
+        ar.searches.push(x);
+        if(ok){successful++;if(x.status==='passages-returned')returned=true}
+        if(!ok||x.capped||x.exhaustive!==true||(x.gaps||[]).length||!x.tool)exhaustive=false;
+        if(!valid)ar.gaps.push(type+': invalid or out-of-window interval.');
+      });
+      terms.forEach(function(term){
+        var ok=entries.filter(function(x){return (x.status==='passages-returned'||x.status==='no-passages-returned')&&
+          Date.parse(x.start)>=start&&Date.parse(x.end)<=end&&Date.parse(x.start)<Date.parse(x.end)&&
+          (x.terms||[]).indexOf(term)>=0});
+        if(!covers(ok)){all=false;ar.gaps.push(type+': source/time/term gap for '+term+' in ['+R.window.start+', '+R.window.end+').')}
+      });
+    });
+    ar.status=all?(returned?'passages-returned':'no-passages-returned'):successful?'partial':
+      attempts.some(function(x){return x.status==='failed'})?'failed':'pending';
+    ar.searched=all;ar.exhaustive=all&&exhaustive;
+    if(!ar.exhaustive)complete=false;
+    rows.push(ar);
+  });
+  var targets=rows.filter(function(x){return x.included}),searched=targets.filter(function(x){return x.searched}).length;
+  if(!targets.length||gaps.length)complete=false;
+  return {rows:rows,errors:uniq(errors),gaps:gaps,count:Object.keys(seen).filter(function(id){return id!=='undefined'&&id!==''}).length,selected:targets.length,searched:searched,
+    allSearched:errors.length===0&&targets.length>0&&searched===targets.length,complete:complete};
+}
+function searchLabel(status){
+  return {'passages-returned':'Passages returned; eligibility reviewed separately',
+    'no-passages-returned':'No passages returned; activity absence not established',
+    failed:'Search failed',pending:'Not yet searched',partial:'Partial search; account/source/time gaps',
+    'explicitly out of scope':'Explicitly out of scope'}[status]||'Coverage unknown';
+}
+function renderCoverage(ch,cv){
+  ch.appendChild(el('span','chip','Account scope: '+COVER.count+(COVER.errors.length?' retrieved accounts (incomplete/unverified)':' resolved My Team Accounts')));
+  if(R.accountScope&&R.accountScope.restriction)ch.appendChild(el('span','chip warn','Explicit narrower scope: '+COVER.selected+' accounts'));
+  ch.appendChild(el('span','chip'+(COVER.allSearched?'':' warn'),
+    COVER.allSearched?'All selected accounts searched ('+COVER.searched+'); not proof of exhaustive evidence':
+      'Accounts searched: '+COVER.searched+' / '+COVER.selected));
+  ch.appendChild(el('span','chip'+(COVER.complete?'':' warn'),COVER.complete?
+    'Selected evidence collections exhausted; not proof of all activity':'Evidence coverage partial or unknown'));
+  COVER.errors.forEach(function(x){cv.appendChild(el('div','done warn',x))});
+  if(R.accountScope)cv.appendChild(el('div',null,'Account source: My Team Accounts (access-team membership), not ownership. '+(R.accountScope.note||'')+
+    (R.accountScope.restriction?' Explicit request: '+R.accountScope.restriction.request:'')));
+  cv.appendChild(el('div',null,'Exact window: ['+R.window.start+', '+R.window.end+')'));
+  COVER.rows.forEach(function(row){
+    var box=el('div'),a=row.account;
+    box.appendChild(el('div',null,a.name+(a.tpid?' (TPID '+a.tpid+')':' (TPID unavailable)')+': '+searchLabel(row.status)+(a.recovery?' \u2014 '+a.recovery:'')));
+    row.searches.forEach(function(x){
+      box.appendChild(el('div','small',x.type+' ['+x.start+', '+x.end+'): '+searchLabel(x.status)+
+        '; terms: '+(x.terms||[]).join(', ')+'; tool: '+(x.tool||'unknown')+
+        (x.capped?'; CAPPED':'')+(x.exhaustive!==true?'; retrieval not exhaustive':'')+
+        (x.note?'; '+x.note:'')+((x.gaps||[]).length?'; gaps: '+x.gaps.join('; '):'')));
+    });
+    row.gaps.forEach(function(x){box.appendChild(el('div','small',x))});
+    cv.appendChild(box);
+  });
+  COVER.gaps.forEach(function(g){cv.appendChild(el('div',null,'Gap: '+g))});
+}
+
 function pmOn(k){return !!(k.proposedMilestone&&ALLOW_MS)}
 var OPPNUM=/^\d-[A-Z0-9]{4,20}$/;
 function initState(){
   var saved=null;
-  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.reviewId===R.reviewId)saved=o}}catch(e){}
-  var dd=D.decisions&&D.decisions.reviewId===R.reviewId?D.decisions:null;
+  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.reviewId===R.reviewId&&o.ownerId===R.owner.id)saved=o}}catch(e){}
+  var dd=D.decisions&&D.decisions.reviewId===R.reviewId&&D.decisions.ownerId===R.owner.id?D.decisions:null;
   if(dd&&(!saved||String(dd.savedAt||'')>String(saved.savedAt||'')))saved=dd;
   var by={};if(saved)(saved.candidates||[]).forEach(function(c){by[c.id]=c});
   CANDS.forEach(function(k){
@@ -173,6 +263,7 @@ function resetIfStale(k){
 
 function issues(k){
   var s=S.c[k.id],t=[],c=[],w=[],ms=msOf(s.matchId),m=catalog[s.matchId],o={needPick:false,noMs:false,whereBad:false};
+  if(COVER.errors.length){t.push('Portfolio/source provenance invalid; return to chat to re-draft.');c.push('Portfolio/source provenance invalid; return to chat to re-draft.')}
   if(CATS.indexOf(s.category)<0)t.push('Pick what type of work this was.');
   if(!s.subject.trim())t.push('Give it a title.');else if(s.subject.length>LIM.subject)t.push('The title is too long (max '+LIM.subject+' characters).');
   else{if(k.customer&&s.subject.toLowerCase().indexOf(k.customer.toLowerCase())>=0)w.push('Leave '+k.customer+' out of the title \u2014 it should just describe the work.');
@@ -238,8 +329,8 @@ function build(){
   ch.appendChild(el('span','chip'+(ALLOW_MS?' on':''),ALLOW_MS?'New milestones: allowed this run':'New milestones: off this run'));
   if(DEMO)ch.appendChild(el('span','chip warn','Demo \u2014 made-up data'));
   var cv=$('coverage');
-  (R.coverage&&R.coverage.sources||[]).forEach(function(x){var n={calendar:'Calendar',transcript:'Meeting transcripts',email:'Email',teams:'Teams chats'}[x.type]||x.type;cv.appendChild(el('div',null,n+': '+(x.searched?x.items+' items'+(x.capped?' (only the most recent)':''):'not searched')+(x.note?' \u2014 '+x.note:'')))});
-  (R.coverage&&R.coverage.gaps||[]).forEach(function(g){cv.appendChild(el('div',null,'Note: '+g))});
+  renderCoverage(ch,cv);
+  (R.coverage&&R.coverage.sources||[]).forEach(function(x){var n={calendar:'Calendar',transcript:'Meeting transcripts',email:'Email',teams:'Teams chats'}[x.type]||x.type;cv.appendChild(el('div',null,n+': '+(x.searched?x.items+' items'+(x.capped?' (partial/capped)':''):'not searched')+(x.note?' \u2014 '+x.note:'')))});
   var lf=$('left');(R.exclusions||[]).forEach(function(x){lf.appendChild(el('div',null,x.summary+' \u2014 '+x.reason))});
   if(!(R.exclusions||[]).length)lf.appendChild(el('div',null,'Nothing.'));
   CANDS.slice().sort(function(a,b){return (a.completionDate||'')<(b.completionDate||'')?-1:(a.completionDate||'')>(b.completionDate||'')?1:a.id<b.id?-1:1}).forEach(buildCard);
@@ -432,9 +523,11 @@ function update(){
   var n={yes:0,skip:0,later:0,open:0,ready:0};
   CANDS.forEach(function(k){var x=updateCard(k);n[x.st]++;if(x.ready)n.ready++});
   var look=n.open-n.ready,total=CANDS.length;
-  $('summary').textContent=total===0?'I didn\u2019t find any work to log this week.':
+  $('summary').textContent=total===0?'No qualifying work retrieved in this window; this does not establish no activity.':
     n.open===0?'All decided: '+n.yes+' to write, '+n.skip+' skipped'+(n.later?', '+n.later+' saved for next week':'')+'.':
-    'I found '+total+' thing'+(total===1?'':'s')+' you did this week. '+(n.ready?n.ready+' ready to include':'None are ready as-is')+(look?', '+look+' need'+(look===1?'s':'')+' a quick look':'')+'.';
+    'I found '+total+' draft item'+(total===1?'':'s')+' in this window. '+(n.ready?n.ready+' ready to include':'None are ready as-is')+(look?', '+look+' need'+(look===1?'s':'')+' a quick look':'')+'.';
+  if(COVER.errors.length)$('summary').textContent='Portfolio/source provenance invalid. '+$('summary').textContent;
+  else if(!COVER.complete)$('summary').textContent='Partial or unknown evidence coverage. '+$('summary').textContent;
   $('logAll').textContent='Include all ready ('+n.ready+')';$('logAll').disabled=!n.ready||S.locked;
   $('count').textContent='To write: '+n.yes+' \u00b7 Skipped: '+n.skip+(n.later?' \u00b7 Next week: '+n.later:'')+' \u00b7 Still to decide: '+n.open;
   var nb=$('notices');nb.textContent='';
@@ -452,7 +545,7 @@ function logAll(){
 }
 
 function getState(){
-  return {reviewId:R.reviewId,savedAt:new Date().toISOString(),finished:S.finished,candidates:CANDS.map(function(k){var s=S.c[k.id];
+  return {reviewId:R.reviewId,ownerId:R.owner.id,savedAt:new Date().toISOString(),finished:S.finished,candidates:CANDS.map(function(k){var s=S.c[k.id];
     return {id:k.id,subject:s.subject,description:s.description,category:s.category,completionDate:s.completionDate,matchId:s.matchId,matchGuess:!!s.matchGuess,oppLookup:s.oppLookup,taskDecision:s.taskDecision,taskApprovedSig:s.taskSig,
       commentSummary:s.commentSummary,commentDestination:effDest(k),commentDestinationPref:s.destPref,commentDecision:s.commentDecision,commentApprovedSig:s.commentSig,milestoneDecision:s.milestoneDecision}})};
 }

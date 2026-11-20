@@ -1,1 +1,12 @@
 review.html
+reviews/
+MSXActivityReview/
+ledger.jsonl
+decisions*.json
+checks.fresh.json
+plan*.json
+results.jsonl
+summary.md
+config.json
+*.log
+.env*
