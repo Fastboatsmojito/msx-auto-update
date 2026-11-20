@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your week in MSX</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--soft:#f1f3f5;--line:#e2e5ea;--text:#1c1f24;--muted:#646b76;--accent:#0f6cbd;--accent-soft:#e8f1fb;--good:#1a7f37;--good-soft:#eaf6ed;--warn:#8a5a00;--warn-soft:#fdf4de}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1c2027;--soft:#242933;--line:#343a46;--text:#e8ebf0;--muted:#9aa3b2;--accent:#5aa9f0;--accent-soft:#1d3247;--good:#56d364;--good-soft:#16301e;--warn:#e3b341;--warn-soft:#3a2f12}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Segoe UI",system-ui,sans-serif;padding-bottom:110px}
+.wrap{max-width:780px;margin:0 auto;padding:20px 16px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}.chip.on{background:var(--accent-soft);color:var(--accent)}
+.notice{margin-top:10px;padding:8px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px}
+.summary{margin:16px 0;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.summary p{margin:0;flex:1;min-width:220px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:12px 16px 12px;margin-bottom:12px}
+.card.needs{border-left-color:var(--warn)}.card.yes{border-left-color:var(--good)}.card.skip,.card.later{opacity:.65}
+.meta{font-size:12px;color:var(--muted);font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ids{margin-top:4px;font-size:12px;color:var(--muted);display:flex;gap:4px 14px;flex-wrap:wrap}
+.ids code{font-family:ui-monospace,Consolas,monospace;color:var(--text);user-select:all}
+.oppform{margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.oppform[hidden]{display:none}
+.oppform input{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line,#d0d7de);border-radius:6px;width:240px;font-family:ui-monospace,Consolas,monospace}
+.opperr{font-size:12px;color:var(--warn)}
+.where-box{margin-top:6px;font-size:14px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.where-box.warn{padding:8px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn)}
+.where-box .wt{flex:1;min-width:220px}
+.where-box b{color:var(--text)}.where-box.warn b{color:inherit}
+.pick{margin-top:6px;width:100%}
+.hints{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--warn)}
+.sec{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px 10px}
+.sec.yes{border-color:var(--good);background:var(--good-soft)}
+.sec.off .fields,.sec.blocked .fields{opacity:.55}
+.sec-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:32px}
+.sec-title{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.sec-status{flex:1;font-size:13px;font-weight:600;color:var(--muted)}
+.sec.yes .sec-status{color:var(--good)}
+.sec-msg{margin:6px 0 2px;padding:6px 10px;border-radius:8px;font-size:14px;background:var(--warn-soft);color:var(--warn)}
+textarea.title{display:block;width:100%;resize:none;overflow:hidden;field-sizing:content;min-height:0;font-family:inherit;font-weight:600;font-size:16px;line-height:1.4;color:var(--text);border:1px solid transparent;background:transparent;padding:2px 5px;margin:4px 0 0 -6px;border-radius:6px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:13px;color:var(--muted)}
+.row label{display:flex;gap:6px;align-items:center}
+textarea{font:inherit;color:var(--text)}
+textarea.soft{display:block;width:100%;margin-top:6px;border:1px solid transparent;background:var(--soft);border-radius:8px;padding:8px 10px;resize:vertical;min-height:44px}
+.sec.yes textarea.soft{background:var(--card)}
+textarea.title:hover,textarea.soft:hover{border-color:var(--line)}
+textarea.title:focus,textarea.soft:focus{border-color:var(--accent);background:var(--card);outline:none}
+.caption{font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:3px 12px;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+button{font:inherit;border-radius:8px;padding:6px 14px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+button.sm{padding:3px 12px;font-size:14px}
+button.go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.link{border:0;background:none;color:var(--accent);padding:2px 0;font-size:13px}
+button:disabled{opacity:.45;cursor:not-allowed}
+[hidden]{display:none!important}
+select,input[type=date]{font:inherit;font-size:14px;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.done{margin-top:10px;padding:8px 10px;border-radius:8px;font-size:14px;background:var(--soft);color:var(--muted)}
+.done.good{background:var(--good-soft);color:var(--good)}.done.warn{background:var(--warn-soft);color:var(--warn)}
+.cfoot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.cfoot details{flex:1;min-width:200px}details summary{cursor:pointer;color:var(--accent);font-size:13px}
+.why{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.foot{margin-top:14px;font-size:14px;color:var(--muted)}.foot div{margin:3px 0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px}
+.bar .in{max-width:780px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar .count{flex:1;min-width:200px;font-weight:600}.small{font-size:12px;color:var(--muted)}
+dialog{max-width:720px;width:92vw;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);padding:18px 22px}
+.plan h3{font-size:15px;margin:16px 0 6px}.plan ul{margin:0;padding-left:20px}.plan li{margin:4px 0}
+.plan blockquote{margin:4px 0 10px;padding:6px 10px;background:var(--soft);border-radius:6px;white-space:pre-wrap}
+.res li{margin:4px 0}
+.finished{margin:10px 0;padding:12px 14px;border-radius:10px;background:var(--good-soft);color:var(--good);display:flex;gap:12px;align-items:center;flex-wrap:wrap}.finished span{flex:1;min-width:220px}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Your week in MSX</h1>
+  <div class="sub" id="who"></div>
+  <div class="chips" id="chips"></div>
+  <div id="finished" class="finished" hidden><span><b>Review finished.</b> Go back to chat and type <b>post to msx</b>. I&rsquo;ll re-check everything against live MSX and show you the final list before anything is written.</span><button id="reopen" type="button">Make more changes</button></div>
+  <div id="notices"></div>
+  <div class="summary"><p id="summary"></p><button class="go" id="logAll" type="button">Include all ready</button></div>
+  <div id="bulkReport" class="small"></div>
+  <div id="list"></div>
+  <div id="results" hidden></div>
+  <details class="foot"><summary>What I looked at</summary><div id="coverage"></div></details>
+  <details class="foot"><summary>What I left out</summary><div id="left"></div></details>
+</div>
+<div class="bar">
+  <div class="in"><span class="count" id="count"></span><button id="preview" type="button">See what will be written</button><button class="go" id="finish" type="button">Finish review</button></div>
+  <div class="in small"><span>Nothing is written from this page. Click <b>Finish review</b>, then go back to chat and type <b>post to msx</b>.</span><span id="saveStatus"></span></div>
+</div>
+<dialog id="dlg" aria-labelledby="dlgTitle"><h2 id="dlgTitle" style="margin:0">What will be written</h2><div id="dlgBody" class="plan"></div><p id="dlgNote" class="small" hidden></p><p><button class="go" id="dlgFinish" type="button" hidden>Finish review</button> <button id="dlgClose" type="button">Back</button></p></dialog>
+<div class="sr" aria-live="polite" id="live"></div>
+<script type="application/json" id="msxr-data">/*__MSXR_DATA__*/</script>
+<script>
+(function(){
+'use strict';
+var D=JSON.parse(document.getElementById('msxr-data').textContent);
+var R=D.review,CATS=D.categories||[],LIM=(D.config&&D.config.limits)||{subject:200,description:12000,comment:4000};
+var ALLOW_MS=!!(R.options&&R.options.allowMilestoneCreation),KEY='msxreview:'+R.reviewId,DEMO=!!D.demo;
+var catalog={},oppById={},checks={};
+(R.catalog||[]).forEach(function(c){catalog[c.id]=c;if(!c.milestoneId)oppById[c.opportunityId]=c});
+(R.checks||[]).forEach(function(c){checks[c.milestoneId]=c});
+var CANDS=(R.candidates||[]).filter(function(k){return !k.keptInChat});
+var S={c:{},notices:[],dirty:false,locked:false,finished:false,savedAt:null},refs={};
+var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function $(id){return document.getElementById(id)}
+function el(t,cls,txt){var e=document.createElement(t);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function btn(txt,cls,fn){var b=el('button',cls,txt);b.type='button';b.addEventListener('click',fn);return b}
+function dt(iso){var d=new Date(String(iso).slice(0,10)+'T12:00:00Z');return isNaN(d)?null:d}
+function nice(iso){var d=iso&&dt(iso);return d?DAYS[d.getUTCDay()]+', '+MON[d.getUTCMonth()]+' '+d.getUTCDate():'No date'}
+function short(iso){var d=iso&&dt(iso);return d?MON[d.getUTCMonth()]+' '+d.getUTCDate():''}
+function validDate(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return false;var d=new Date(v+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===v}
+function today(){return new Date().toISOString().slice(0,10)}
+function announce(m){$('live').textContent=m}
+function uniq(a){return a.filter(function(x,i){return a.indexOf(x)===i})}
+function q(s){return '\u201c'+s+'\u201d'}
+function sentence(parts){return parts.length<2?parts.join(''):parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]}
+
+function pmOn(k){return !!(k.proposedMilestone&&ALLOW_MS)}
+var OPPNUM=/^\d-[A-Z0-9]{4,20}$/;
+function initState(){
+  var saved=null;
+  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.reviewId===R.reviewId)saved=o}}catch(e){}
+  var dd=D.decisions&&D.decisions.reviewId===R.reviewId?D.decisions:null;
+  if(dd&&(!saved||String(dd.savedAt||'')>String(saved.savedAt||'')))saved=dd;
+  var by={};if(saved)(saved.candidates||[]).forEach(function(c){by[c.id]=c});
+  CANDS.forEach(function(k){
+    var s=by[k.id]||{};
+    S.c[k.id]={
+      subject:s.subject!=null?s.subject:k.subject,description:s.description!=null?s.description:k.description,
+      category:s.category!==undefined?s.category:k.category,completionDate:s.completionDate!==undefined?s.completionDate:k.completionDate,
+      matchId:s.matchId!==undefined?s.matchId:k.matchId,matchGuess:s.matchGuess===true&&!!msOf(s.matchId!==undefined?s.matchId:k.matchId),oppLookup:typeof s.oppLookup==='string'&&OPPNUM.test(s.oppLookup)?s.oppLookup:null,taskDecision:s.taskDecision||'pending',
+      commentSummary:s.commentSummary!=null?s.commentSummary:(k.commentSummary||''),
+      destPref:s.commentDestinationPref||(s.commentDestination==='opportunity'?'opportunity':'milestone'),
+      commentDecision:s.commentDecision||'pending',milestoneDecision:s.milestoneDecision||(pmOn(k)?'pending':'none'),
+      taskSig:s.taskApprovedSig||null,commentSig:s.commentApprovedSig||null
+    };
+  });
+  if(saved&&saved.savedAt)S.savedAt=saved.savedAt;
+  S.finished=!!(saved&&saved.finished===true);
+  CANDS.forEach(resetIfStale);
+}
+
+function oppOf(id){var m=catalog[id];return m?m.opportunityId:null}
+function msOf(id){var m=catalog[id];return m?m.milestoneId:null}
+function newMs(k){var s=S.c[k.id];return pmOn(k)&&!s.matchId&&!s.oppLookup&&s.milestoneDecision==='approved'}
+function hasMs(k){return !!(msOf(S.c[k.id].matchId)||newMs(k))}
+function oppK(k){var s=S.c[k.id];if(s.oppLookup)return null;return oppOf(s.matchId)||(pmOn(k)&&!s.matchId?k.proposedMilestone.opportunityId:null)}
+function oppNameK(k){var o=oppById[oppK(k)];return o?o.opportunityName:''}
+function oppNumK(k){var o=oppById[oppK(k)];return o&&o.opportunityNumber||''}
+function msNameK(k){var m=catalog[S.c[k.id].matchId];return m&&m.milestoneId?m.milestoneName:newMs(k)?k.proposedMilestone.name:''}
+/* Where the update would go, ignoring whether there is text: milestone by default, opportunity when chosen or when there is no milestone. */
+function destOf(k){var s=S.c[k.id];if(s.destPref==='milestone'&&hasMs(k))return 'milestone';if(oppK(k))return 'opportunity';return s.destPref}
+function effDest(k){return S.c[k.id].commentSummary.trim()?destOf(k):'none'}
+function effTarget(k){var d=effDest(k),s=S.c[k.id];if(d==='milestone')return msOf(s.matchId)||(newMs(k)?'new:'+k.id:null);if(d==='opportunity')return oppK(k);return null}
+function taskSigOf(k){var s=S.c[k.id],ms=msOf(s.matchId);return JSON.stringify([s.subject,s.description,s.category,s.completionDate,s.matchId,ms&&checks[ms]?checks[ms]:null,k.taskBlockedReason||'',s.milestoneDecision,s.oppLookup])}
+function commentSigOf(k){var s=S.c[k.id];return JSON.stringify([s.commentSummary,effDest(k),effTarget(k),k.commentBlockedReason||''])}
+function resetIfStale(k){
+  var s=S.c[k.id];
+  if(s.taskDecision==='approved'&&s.taskSig!==taskSigOf(k)){s.taskDecision='pending';s.taskSig=null;addNotice('You changed '+q(s.subject)+', so its HoK entry needs your OK again.')}
+  if(s.commentDecision==='approved'&&s.commentSig!==commentSigOf(k)){s.commentDecision='pending';s.commentSig=null;addNotice('You changed '+q(s.subject)+', so its milestone update needs your OK again.')}
+}
+
+function issues(k){
+  var s=S.c[k.id],t=[],c=[],w=[],ms=msOf(s.matchId),m=catalog[s.matchId],o={needPick:false,noMs:false,whereBad:false};
+  if(CATS.indexOf(s.category)<0)t.push('Pick what type of work this was.');
+  if(!s.subject.trim())t.push('Give it a title.');else if(s.subject.length>LIM.subject)t.push('The title is too long (max '+LIM.subject+' characters).');
+  else{if(k.customer&&s.subject.toLowerCase().indexOf(k.customer.toLowerCase())>=0)w.push('Leave '+k.customer+' out of the title \u2014 it should just describe the work.');
+    if(/[.!?]\s+\S/.test(s.subject.trim()))w.push('Keep the title to one sentence.')}
+  if(!s.description.trim())t.push('Add a short description.');else if(s.description.length>LIM.description)t.push('The description is too long.');
+  if(!validDate(s.completionDate)||s.completionDate>today()||s.completionDate>R.window.end.slice(0,10)){var dm='The date must be today or earlier.';t.push(dm);c.push(dm)}
+  if(s.oppLookup){var lk='Waiting for me to look up opportunity '+s.oppLookup+' (go back to chat and type post to msx).';t.push(lk);c.push(lk)}
+  else if(!s.matchId){
+    if(pmOn(k)){if(s.milestoneDecision!=='approved'){t.push('It needs a milestone first (see the top of the card).');o.noMs=true}}
+    else{t.push('It needs a milestone first (see the top of the card).');o.needPick=true}
+  }
+  else if(!m||k.allowedMatchIds.indexOf(s.matchId)<0){var bm='That record does not belong to '+k.customer+'.';t.push(bm);c.push(bm);o.whereBad=true}
+  else if(!ms)t.push('HoK has to sit on a milestone, and this card is on the opportunity only.');
+  else{
+    var ch=checks[ms];
+    if(!ch||!ch.complete)w.push('I couldn\u2019t fully check MSX for HoK already on this milestone. I\u2019ll re-check right before writing and drop it if it\u2019s already there.');
+    var recs=ch?ch.records:[],mine=recs.filter(function(r){return r.ownerId===R.owner.id&&r.category===s.category})[0];
+    if(mine)t.push('Already in MSX: you logged '+q(mine.subject)+' on '+short(mine.date)+'. MSX counts one '+s.category+' per milestone for you.');
+    recs.forEach(function(r){if(r.ownerId!==R.owner.id&&r.category===s.category)w.push(r.ownerName+' also logged a '+s.category+' on this milestone.')});
+    if(m.milestoneStatus&&/Completed|Cancelled|Hygiene|Duplicate/.test(m.milestoneStatus))w.push('This milestone is marked '+m.milestoneStatus+'.');
+  }
+  if(s.matchGuess&&ms){var gm='Confirm the milestone I guessed for the new opportunity (top of the card).';t.unshift(gm);c.unshift(gm)}
+  if(ms&&s.category)CANDS.forEach(function(x){var sx=S.c[x.id];if(x.id!==k.id&&sx.taskDecision==='approved'&&msOf(sx.matchId)===ms&&sx.category===s.category)t.push(q(sx.subject)+' already logs the '+s.category+' on this milestone. MSX counts one per type.')});
+  if(k.taskBlockedReason)t.push(k.taskBlockedReason);
+  if(k.confidence!=='high'&&s.matchId&&!s.matchGuess&&(s.matchId===k.matchId||s.matchId===k.recommendedMatchId))w.push('Double-check the milestone. '+(k.rationale||''));
+  (k.flags||[]).forEach(function(f){w.push(f)});
+  var txt=s.commentSummary.trim(),tg=effTarget(k);
+  if(txt){
+    if(txt.length>LIM.comment)c.push('The update is too long ('+txt.length+' / '+LIM.comment+').');
+    if(!tg)c.push('Pick where this work belongs first (top of the card).');
+    if(k.commentBlockedReason)c.push(k.commentBlockedReason);
+    if(tg)CANDS.forEach(function(x){var sx=S.c[x.id];if(x.id!==k.id&&sx.commentDecision==='approved'&&effTarget(x)===tg&&sx.commentSummary.trim()===txt)c.push('Same update as '+q(sx.subject)+'.')});
+  }
+  o.t=uniq(t);o.c=uniq(c);o.w=uniq(w);o.noteOk=!!txt&&!o.c.length;return o;
+}
+function cardState(k){
+  var s=S.c[k.id],txt=!!s.commentSummary.trim();
+  if(s.taskDecision==='held'||s.commentDecision==='held')return 'later';
+  if(s.taskDecision==='pending'||(txt&&s.commentDecision==='pending'))return 'open';
+  if(s.taskDecision==='approved'||s.commentDecision==='approved')return 'yes';
+  return 'skip';
+}
+function msUsed(k){
+  if(!newMs(k))return false;var s=S.c[k.id],is=issues(k);
+  return (s.taskDecision==='approved'&&!is.t.length)||(s.commentDecision==='approved'&&!is.c.length&&effDest(k)==='milestone');
+}
+
+function includeTask(k){var s=S.c[k.id];if(issues(k).t.length)return false;s.taskDecision='approved';s.taskSig=taskSigOf(k);return true}
+function includeUpdate(k){
+  var s=S.c[k.id],is=issues(k);if(!is.noteOk)return false;
+  s.commentDecision='approved';s.commentSig=commentSigOf(k);
+  if(s.taskDecision==='pending'&&is.t.length){s.taskDecision='rejected';s.taskSig=null}
+  return true;
+}
+function setTask(k,v){var s=S.c[k.id];s.taskDecision=v;s.taskSig=null}
+function setUpdate(k,v){var s=S.c[k.id];s.commentDecision=v;s.commentSig=null}
+function setBoth(k,v){setTask(k,v);setUpdate(k,v)}
+function act(k,fn){if(S.locked||S.finished)return;fn(k);resetIfStale(k);persist();update()}
+
+function build(){
+  $('who').textContent=(R.owner.displayName||'')+' \u00b7 '+short(R.window.start)+' \u2013 '+short(R.window.end);
+  var ch=$('chips');
+  ch.appendChild(el('span','chip'+(ALLOW_MS?' on':''),ALLOW_MS?'New milestones: allowed this run':'New milestones: off this run'));
+  if(DEMO)ch.appendChild(el('span','chip warn','Demo \u2014 made-up data'));
+  var cv=$('coverage');
+  (R.coverage&&R.coverage.sources||[]).forEach(function(x){var n={calendar:'Calendar',transcript:'Meeting transcripts',email:'Email',teams:'Teams chats'}[x.type]||x.type;cv.appendChild(el('div',null,n+': '+(x.searched?x.items+' items'+(x.capped?' (only the most recent)':''):'not searched')+(x.note?' \u2014 '+x.note:'')))});
+  (R.coverage&&R.coverage.gaps||[]).forEach(function(g){cv.appendChild(el('div',null,'Note: '+g))});
+  var lf=$('left');(R.exclusions||[]).forEach(function(x){lf.appendChild(el('div',null,x.summary+' \u2014 '+x.reason))});
+  if(!(R.exclusions||[]).length)lf.appendChild(el('div',null,'Nothing.'));
+  CANDS.slice().sort(function(a,b){return (a.completionDate||'')<(b.completionDate||'')?-1:(a.completionDate||'')>(b.completionDate||'')?1:a.id<b.id?-1:1}).forEach(buildCard);
+}
+function whereOptions(sel,k){
+  sel.textContent='';var o0=el('option',null,'Choose the milestone\u2026');o0.value='';sel.appendChild(o0);
+  var opps=(R.catalog||[]).filter(function(c){return !c.milestoneId&&k.allowedMatchIds.indexOf(c.id)>=0});
+  opps.forEach(function(op){
+    var g=el('optgroup');g.label=op.opportunityName+(op.opportunityNumber?' \u00b7 '+op.opportunityNumber:'');
+    (R.catalog||[]).filter(function(c){return c.milestoneId&&c.opportunityId===op.opportunityId&&k.allowedMatchIds.indexOf(c.id)>=0}).forEach(function(c){
+      var o=el('option',null,c.milestoneName+(c.milestoneStatus&&c.milestoneStatus!=='On Track'?' ('+c.milestoneStatus+')':'')+(c.milestoneNumber?' \u00b7 '+c.milestoneNumber:''));o.value=c.id;g.appendChild(o)});
+    if(pmOn(k)&&k.proposedMilestone.opportunityId===op.opportunityId){var n=el('option',null,'New milestone: '+k.proposedMilestone.name+' (I\u2019ll create it)');n.value='__new';g.appendChild(n)}
+    var oo=el('option',null,'No milestone \u2014 opportunity only (no HoK)');oo.value=op.id;g.appendChild(oo);
+    sel.appendChild(g);
+  });
+}
+var CLOSED_MS=/Completed|Cancelled|Hygiene|Duplicate/;
+var STOP={the:1,and:1,for:1,with:1,from:1,this:1,that:1,customer:1,data:1,build:1,built:1,session:1,milestone:1,opportunity:1,new:1};
+function words(x){return String(x||'').toLowerCase().split(/[^a-z0-9]+/).filter(function(w){return w.length>2&&!STOP[w]})}
+/* Page-side best guess when the SE switches opportunity: drafted pick if it is on that opportunity, else the only open milestone,
+   else the open milestone whose name shares the most words with the card (ties or no overlap = no guess). The SE must confirm. */
+function bestGuess(k,oppId){
+  var ms=(R.catalog||[]).filter(function(c){return c.milestoneId&&c.opportunityId===oppId&&k.allowedMatchIds.indexOf(c.id)>=0&&!CLOSED_MS.test(c.milestoneStatus||'')});
+  var rec=ms.filter(function(c){return c.id===k.recommendedMatchId||c.id===k.matchId})[0];if(rec)return rec.id;
+  if(ms.length===1)return ms[0].id;
+  var s=S.c[k.id],skip={};words(k.customer).concat(words(oppById[oppId]&&oppById[oppId].opportunityName)).forEach(function(w){skip[w]=1});
+  var bag={};words(s.subject+' '+s.description+' '+s.commentSummary).forEach(function(w){if(!skip[w])bag[w]=1});
+  var best=null,top=0,tie=false;
+  ms.forEach(function(c){var n=0,seen={};words(c.milestoneName).forEach(function(w){if(bag[w]&&!seen[w]){n++;seen[w]=1}});if(n>top){top=n;best=c.id;tie=false}else if(n&&n===top)tie=true});
+  return top>0&&!tie?best:null;
+}
+function onWhere(k,v){var s=S.c[k.id];s.oppLookup=null;s.matchGuess=false;if(v==='__new'){s.matchId=null;s.milestoneDecision='approved'}else{s.matchId=v||null;if(pmOn(k))s.milestoneDecision=v?'rejected':'pending'}if(v)refs[k.id].pickOpen=false}
+function useOpp(k){
+  var r=refs[k.id],s=S.c[k.id],v=String(r.oppIn.value||'').trim().toUpperCase().replace(/\s+/g,'');
+  if(!OPPNUM.test(v)){r.oppErr.textContent='That doesn\u2019t look like an MSX opportunity ID (for example 7-3ABC123456).';return}
+  var hit=(R.catalog||[]).filter(function(c){return !c.milestoneId&&String(c.opportunityNumber||'').toUpperCase()===v})[0];
+  if(hit&&!s.oppLookup&&oppK(k)===hit.opportunityId){r.oppErr.textContent='That\u2019s already the opportunity on this card.';return}
+  r.oppErr.textContent='';r.oppOpen=false;r.oppIn.value='';
+  var ok=hit&&k.allowedMatchIds.indexOf(hit.id)>=0,g=ok?bestGuess(k,hit.opportunityId):null;
+  act(k,function(x){var sx=S.c[x.id];
+    if(ok){sx.matchId=g||hit.id;sx.matchGuess=!!g;sx.oppLookup=null;r.pickOpen=!g}else{sx.matchId=null;sx.matchGuess=false;sx.oppLookup=v;r.pickOpen=false}
+    if(pmOn(x))sx.milestoneDecision=ok&&x.proposedMilestone.opportunityId===hit.opportunityId?'pending':'rejected'});
+  announce(!ok?'I\u2019ll look up '+v+' when you type post to msx in chat.':g?'Switched to '+hit.opportunityName+'. My best guess for the milestone is '+catalog[g].milestoneName+' \u2014 confirm it or pick another.':'Switched to '+hit.opportunityName+'. Now pick its milestone.');
+}
+function cancelLookup(k){act(k,function(x){var sx=S.c[x.id];sx.oppLookup=null;sx.matchGuess=false;sx.matchId=x.matchId;if(pmOn(x))sx.milestoneDecision='pending'})}
+function field(text,node){var l=el('label');l.appendChild(document.createTextNode(text));l.appendChild(node);return l}
+function secHead(title){
+  var h=el('div','sec-head'),r={};h.appendChild(el('span','sec-title',title));r.status=el('span','sec-status');h.appendChild(r.status);
+  r.inc=el('button','sm go','Include');r.inc.type='button';r.skip=el('button','sm','Skip');r.skip.type='button';r.undo=el('button','sm link','Undo');r.undo.type='button';
+  h.appendChild(r.inc);h.appendChild(r.skip);h.appendChild(r.undo);r.el=h;return r;
+}
+function fitTitle(x){if(CSS.supports&&CSS.supports('field-sizing','content'))return;x.style.height='auto';x.style.height=x.scrollHeight+'px'}
+function typing(k){return function(){edited(k,true)}}
+function buildCard(k){
+  var s=S.c[k.id],r={pickOpen:false};refs[k.id]=r;
+  var card=el('article','card');r.card=card;
+  r.meta=el('div','meta');card.appendChild(r.meta);
+  r.ids=el('div','ids');card.appendChild(r.ids);
+  r.oppLink=btn('Change opportunity','sm link',function(){r.oppOpen=!r.oppOpen;r.oppErr.textContent='';update();if(r.oppOpen)r.oppIn.focus()});
+  r.oppForm=el('div','oppform');
+  r.oppIn=el('input');r.oppIn.type='text';r.oppIn.maxLength=24;r.oppIn.placeholder='Opportunity ID, e.g. 7-3ABC123456';r.oppIn.setAttribute('aria-label','Opportunity ID');
+  r.oppIn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();useOpp(k)}else if(e.key==='Escape'){r.oppOpen=false;update()}});
+  r.oppForm.appendChild(r.oppIn);r.oppForm.appendChild(btn('Use it','sm go',function(){useOpp(k)}));
+  r.oppForm.appendChild(btn('Cancel','sm link',function(){r.oppOpen=false;r.oppErr.textContent='';update()}));
+  r.oppErr=el('span','opperr');r.oppForm.appendChild(r.oppErr);card.appendChild(r.oppForm);
+  r.whereBox=el('div','where-box');r.whereText=el('span','wt');r.whereBox.appendChild(r.whereText);
+  r.create=btn('Create it','sm go',function(){act(k,function(x){S.c[x.id].milestoneDecision='approved'})});
+  r.drop=btn('Don\u2019t create','sm link',function(){act(k,function(x){S.c[x.id].milestoneDecision='pending'})});
+  r.unlook=btn('Undo','sm link',function(){cancelLookup(k)});
+  r.confirm=btn('Yes, that\u2019s it','sm go',function(){r.pickOpen=false;act(k,function(x){S.c[x.id].matchGuess=false})});
+  r.change=btn('Change','sm link',function(){r.pickOpen=!r.pickOpen;update();if(r.pickOpen)r.pick.focus()});
+  [r.create,r.drop,r.unlook,r.confirm,r.change].forEach(function(b){r.whereBox.appendChild(b)});card.appendChild(r.whereBox);
+  r.pick=el('select','pick');r.pick.setAttribute('aria-label','Milestone');whereOptions(r.pick,k);
+  r.pick.addEventListener('change',function(){act(k,function(x){onWhere(x,r.pick.value)})});card.appendChild(r.pick);
+  r.hints=el('ul','hints');card.appendChild(r.hints);
+
+  var hok=el('section','sec');r.hok=hok;var th=secHead('HoK entry');r.th=th;hok.appendChild(th.el);
+  th.inc.addEventListener('click',function(){act(k,includeTask)});
+  th.skip.addEventListener('click',function(){act(k,function(x){setTask(x,'rejected')})});
+  th.undo.addEventListener('click',function(){act(k,function(x){setTask(x,'pending')})});
+  r.tMsg=el('div','sec-msg');hok.appendChild(r.tMsg);
+  var tf=el('div','fields');
+  r.title=el('textarea','title');r.title.rows=1;r.title.maxLength=LIM.subject;r.title.value=s.subject;r.title.setAttribute('aria-label','HoK title');
+  r.title.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault()});
+  r.title.addEventListener('input',function(){if(/[\r\n]/.test(r.title.value))r.title.value=r.title.value.replace(/\s*[\r\n]+\s*/g,' ');s.subject=r.title.value;fitTitle(r.title);edited(k,true)});tf.appendChild(r.title);requestAnimationFrame(function(){fitTitle(r.title)});
+  var row=el('div','row');
+  r.cat=el('select');var c0=el('option',null,'Choose\u2026');c0.value='';r.cat.appendChild(c0);
+  CATS.forEach(function(c){var o=el('option',null,c);o.value=c;r.cat.appendChild(o)});
+  r.cat.addEventListener('change',function(){s.category=r.cat.value||null;edited(k)});row.appendChild(field('Type',r.cat));
+  r.date=el('input');r.date.type='date';r.date.addEventListener('change',function(){s.completionDate=r.date.value||null;edited(k)});row.appendChild(field('Date',r.date));
+  tf.appendChild(row);
+  r.desc=el('textarea','soft');r.desc.rows=2;r.desc.value=s.description;r.desc.setAttribute('aria-label','HoK description');r.desc.placeholder='What you did (saved on the HoK)';
+  r.desc.addEventListener('input',function(){s.description=r.desc.value;edited(k,true)});tf.appendChild(r.desc);
+  hok.appendChild(tf);card.appendChild(hok);
+
+  var upd=el('section','sec');r.upd=upd;var uh=secHead('Milestone update');r.uh=uh;upd.appendChild(uh.el);
+  uh.inc.addEventListener('click',function(){act(k,includeUpdate)});
+  uh.skip.addEventListener('click',function(){act(k,function(x){setUpdate(x,'rejected')})});
+  uh.undo.addEventListener('click',function(){act(k,function(x){setUpdate(x,'pending')})});
+  r.uMsg=el('div','sec-msg');upd.appendChild(r.uMsg);
+  var uf=el('div','fields'),urow=el('div','row');urow.appendChild(el('span',null,'Post on'));
+  var seg=el('div','seg');
+  r.dMs=btn('Milestone',null,function(){act(k,function(x){S.c[x.id].destPref='milestone'})});
+  r.dOpp=btn('Opportunity',null,function(){act(k,function(x){S.c[x.id].destPref='opportunity'})});
+  seg.appendChild(r.dMs);seg.appendChild(r.dOpp);urow.appendChild(seg);r.cap=el('span','caption');urow.appendChild(r.cap);uf.appendChild(urow);
+  r.note=el('textarea','soft');r.note.rows=2;r.note.value=s.commentSummary;r.note.setAttribute('aria-label','Milestone update');r.note.placeholder='Optional: a short status update (added to the record\u2019s comments)';
+  r.note.addEventListener('input',function(){s.commentSummary=r.note.value;edited(k,true)});uf.appendChild(r.note);
+  upd.appendChild(uf);card.appendChild(upd);
+
+  r.done=el('div','done');card.appendChild(r.done);
+  var foot=el('div','cfoot'),det=el('details');det.appendChild(el('summary',null,'Why I think this happened'));
+  var why=el('ul','why');(k.evidence||[]).forEach(function(e){why.appendChild(el('li',null,short(e.date)+' \u00b7 '+e.ref))});
+  if(k.rationale)why.appendChild(el('li',null,'Why I matched it: '+k.rationale));det.appendChild(why);foot.appendChild(det);
+  r.skipAll=btn('Skip this card','link',function(){act(k,function(x){setBoth(x,'rejected')})});
+  r.later=btn('Decide next week','link',function(){act(k,function(x){setBoth(x,'held')})});
+  r.reopen=btn('Change my mind','link',function(){act(k,function(x){setBoth(x,'pending')})});
+  [r.skipAll,r.later,r.reopen].forEach(function(b){foot.appendChild(b)});card.appendChild(foot);
+  $('list').appendChild(card);
+}
+
+var tm=null;
+function edited(k,isTyping){resetIfStale(k);persist();if(isTyping){clearTimeout(tm);tm=setTimeout(update,150)}else update()}
+function addNotice(m){S.notices.push(m);announce(m)}
+function persist(){
+  try{localStorage.setItem(KEY,JSON.stringify(getState()));S.dirty=false;$('saveStatus').textContent='Saved '+new Date().toLocaleTimeString()}
+  catch(e){S.dirty=true;$('saveStatus').textContent='Could not autosave \u2014 type \u201cpost to msx\u201d in chat to capture your edits'}
+}
+function addB(p,t){p.appendChild(el('b',null,t))}
+function addT(p,t){p.appendChild(document.createTextNode(t))}
+
+function updateCard(k){
+  var s=S.c[k.id],r=refs[k.id],is=issues(k),st=cardState(k),m=catalog[s.matchId],ms=msOf(s.matchId),pm=k.proposedMilestone;
+  r.meta.textContent='';r.meta.appendChild(el('span',null,nice(s.completionDate)+' \u00b7 '+k.customer));
+  if(k.carriedFrom)r.meta.appendChild(el('span','chip','Left over from last week'));
+  r.ids.textContent='';
+  function idItem(label,name,num){var sp=el('span');addT(sp,label+': ');if(num){sp.appendChild(el('code',null,num));addT(sp,' \u00b7 ')}addT(sp,name);r.ids.appendChild(sp)}
+  if(s.oppLookup)idItem('Opportunity','I\u2019ll look this up in MSX when you type post to msx',s.oppLookup);
+  else if(oppK(k))idItem('Opportunity',oppNameK(k),oppNumK(k)||'ID not found');else idItem('Opportunity','none picked yet');
+  r.ids.appendChild(r.oppLink);r.oppLink.textContent=r.oppOpen?'Close':'Change opportunity';r.oppForm.hidden=!r.oppOpen;
+  if(ms)idItem('Milestone',m.milestoneName+(s.matchGuess?' (my guess \u2014 confirm it below)':''),m.milestoneNumber||'ID not found');
+  else if(newMs(k))idItem('Milestone',pm.name+' (new \u2014 MSX assigns the ID when I create it)');
+  else if(m)idItem('Milestone','none (opportunity only)');
+
+  var wt=r.whereText,warn=false;wt.textContent='';r.create.hidden=true;r.drop.hidden=true;r.unlook.hidden=true;r.confirm.hidden=true;r.change.hidden=false;r.change.textContent=r.pickOpen?'Close':'Change';
+  if(s.oppLookup){warn=true;addT(wt,'You entered opportunity ');addB(wt,s.oppLookup);addT(wt,'. Go back to chat and type post to msx \u2014 I\u2019ll look it up in MSX and bring back its milestones for you to pick here.');r.unlook.hidden=false;r.change.textContent=r.pickOpen?'Close':'Pick from the list instead'}
+  else if(!s.matchId&&!k.allowedMatchIds.length){warn=true;r.change.hidden=true;addT(wt,'There\u2019s no opportunity in MSX for this work, so I can\u2019t log it. Skip it, or log it by hand once the opportunity exists.')}
+  else if(ms&&s.matchGuess){warn=true;addT(wt,'New opportunity, so I picked my best-guess milestone: ');addB(wt,m.milestoneName);if(m.milestoneStatus&&m.milestoneStatus!=='On Track')addT(wt,' ('+m.milestoneStatus+')');addT(wt,' on '+m.opportunityName+'. Is that right?');r.confirm.hidden=false;r.change.textContent=r.pickOpen?'Close':'Pick another'}
+  else if(ms){addT(wt,'Milestone: ');addB(wt,m.milestoneName);if(m.milestoneStatus&&m.milestoneStatus!=='On Track')addT(wt,' ('+m.milestoneStatus+')');addT(wt,' \u00b7 '+m.opportunityName)}
+  else if(newMs(k)){addT(wt,'New milestone: ');addB(wt,pm.name);addT(wt,' \u2014 I\u2019ll create it on '+(oppNameK(k)||'the opportunity')+' ('+pm.category+', due '+short(pm.date)+').');r.drop.hidden=false}
+  else if(m){addT(wt,'Opportunity: ');addB(wt,m.opportunityName);addT(wt,' \u2014 no milestone, so no HoK.')}
+  else if(pmOn(k)){warn=true;addT(wt,'No milestone for this yet. I can create ');addB(wt,pm.name);addT(wt,' ('+pm.category+', due '+short(pm.date)+') on '+(oppNameK(k)||'the opportunity')+'.'+(pm.parentNeedsStartDate?' The opportunity needs a start date first.':''));r.create.hidden=false;r.change.textContent=r.pickOpen?'Close':'Pick an existing one'}
+  else{warn=true;addT(wt,'Pick the milestone this work belongs to.');r.pickOpen=true;r.change.hidden=true}
+  if(is.whereBad)warn=true;
+  r.whereBox.className='where-box'+(warn?' warn':'');
+  r.pick.hidden=!r.pickOpen;r.pick.value=s.matchId||(newMs(k)?'__new':'');
+  r.hints.textContent='';if(st!=='skip'&&st!=='later')is.w.forEach(function(x){r.hints.appendChild(el('li',null,x))});
+
+  var td=s.taskDecision,tb=is.t.length>0,th=r.th;
+  th.status.textContent=td==='approved'?'\u2713 Will be logged':td==='rejected'?(tb?'Not logged':'Skipped'):td==='held'?'Next week':tb?'Can\u2019t log yet':'';
+  th.inc.hidden=td!=='pending';th.inc.disabled=tb;th.skip.hidden=td!=='pending';th.undo.hidden=td==='pending'||td==='held';
+  var tmsg='';if(tb&&td!=='held'){tmsg=(td==='approved'?'This can\u2019t be written as approved: ':'')+is.t[0]}
+  r.tMsg.hidden=!tmsg;r.tMsg.textContent=tmsg;
+  r.hok.className='sec'+(td==='approved'?' yes':'')+(td==='rejected'||td==='held'?' off':'')+(tb&&td==='pending'?' blocked':'');
+  r.cat.value=s.category||'';r.date.value=s.completionDate||'';
+
+  var txt=s.commentSummary.trim(),cd=s.commentDecision,uh=r.uh,dd=destOf(k),cb=!is.noteOk;
+  uh.status.textContent=cd==='approved'?'\u2713 Will be posted':cd==='rejected'?'Skipped':cd==='held'?'Next week':!txt?'Optional':cb?'Can\u2019t post yet':'';
+  uh.inc.hidden=cd!=='pending'||!txt;uh.inc.disabled=cb;uh.skip.hidden=cd!=='pending'||!txt;uh.undo.hidden=cd==='pending'||cd==='held';
+  var umsg=txt&&is.c.length&&cd!=='rejected'&&cd!=='held'?(cd==='approved'?'This can\u2019t be written as approved: ':'')+is.c[0]:'';
+  r.uMsg.hidden=!umsg;r.uMsg.textContent=umsg;
+  r.dMs.className=dd==='milestone'?'on':'';r.dOpp.className=dd==='opportunity'?'on':'';r.dMs.disabled=!hasMs(k);r.dOpp.disabled=!oppK(k);
+  r.dMs.title=hasMs(k)?'':'There\u2019s no milestone to post on.';
+  r.cap.textContent=dd==='milestone'&&hasMs(k)?(ms?q(m.milestoneName):q(pm.name)+' (right after I create it)'):dd==='opportunity'?q(oppNameK(k))+(s.destPref==='milestone'&&!hasMs(k)?' \u2014 no milestone yet':''):'';
+  r.upd.className='sec'+(cd==='approved'?' yes':'')+(cd==='rejected'||cd==='held'?' off':'')+(txt&&cb&&cd==='pending'?' blocked':'');
+
+  var dcls='',dtxt='';
+  if(st==='yes'){
+    var bad=(td==='approved'&&tb)||(cd==='approved'&&cb);
+    if(bad){dcls='warn';dtxt='Something approved here can\u2019t be written \u2014 see above.'}
+    else{var p=[];if(msUsed(k))p.push('create the milestone '+q(pm.name));if(td==='approved')p.push('log the HoK');if(cd==='approved')p.push('post the update on the '+effDest(k));dcls='good';dtxt='\u2713 I\u2019ll '+sentence(p)+'.'}
+  }else if(st==='skip')dtxt='Skipped \u2014 nothing will be written.';
+  else if(st==='later')dtxt='Saved for next week\u2019s review.';
+  r.done.className='done '+dcls;r.done.hidden=!dtxt;r.done.textContent=dtxt;
+  r.skipAll.hidden=st!=='open';r.later.hidden=st!=='open';r.reopen.hidden=st==='open';
+  r.card.className='card '+st+(st==='open'&&(tb||is.w.length||(txt&&cb))?' needs':'');
+  var ready=st==='open'&&td==='pending'&&!tb&&!is.w.length&&(!txt||(cd==='pending'&&!cb));
+  return {st:st,ready:ready};
+}
+function update(){
+  var n={yes:0,skip:0,later:0,open:0,ready:0};
+  CANDS.forEach(function(k){var x=updateCard(k);n[x.st]++;if(x.ready)n.ready++});
+  var look=n.open-n.ready,total=CANDS.length;
+  $('summary').textContent=total===0?'I didn\u2019t find any work to log this week.':
+    n.open===0?'All decided: '+n.yes+' to write, '+n.skip+' skipped'+(n.later?', '+n.later+' saved for next week':'')+'.':
+    'I found '+total+' thing'+(total===1?'':'s')+' you did this week. '+(n.ready?n.ready+' ready to include':'None are ready as-is')+(look?', '+look+' need'+(look===1?'s':'')+' a quick look':'')+'.';
+  $('logAll').textContent='Include all ready ('+n.ready+')';$('logAll').disabled=!n.ready||S.locked;
+  $('count').textContent='To write: '+n.yes+' \u00b7 Skipped: '+n.skip+(n.later?' \u00b7 Next week: '+n.later:'')+' \u00b7 Still to decide: '+n.open;
+  var nb=$('notices');nb.textContent='';
+  if(S.locked)nb.appendChild(el('div','notice','Confirmed \u2014 this page is locked. Ask me in chat if you want to change something.'));
+  S.notices.slice(-3).forEach(function(x){nb.appendChild(el('div','notice',x))});
+  $('finished').hidden=!S.finished||S.locked;$('finish').hidden=S.finished||S.locked;
+  if(S.locked||S.finished)disableAll();
+  if(S.finished&&!S.locked)$('reopen').disabled=false;
+}
+function logAll(){
+  if(S.locked||S.finished)return;var c=0;
+  CANDS.forEach(function(k){var s=S.c[k.id],is=issues(k),txt=s.commentSummary.trim();
+    if(cardState(k)==='open'&&s.taskDecision==='pending'&&!is.t.length&&!is.w.length&&(!txt||(s.commentDecision==='pending'&&is.noteOk))){includeTask(k);if(txt)includeUpdate(k);c++}});
+  $('bulkReport').textContent=c?'Included '+c+'. Cards that need a look were left for you.':'';persist();update();
+}
+
+function getState(){
+  return {reviewId:R.reviewId,savedAt:new Date().toISOString(),finished:S.finished,candidates:CANDS.map(function(k){var s=S.c[k.id];
+    return {id:k.id,subject:s.subject,description:s.description,category:s.category,completionDate:s.completionDate,matchId:s.matchId,matchGuess:!!s.matchGuess,oppLookup:s.oppLookup,taskDecision:s.taskDecision,taskApprovedSig:s.taskSig,
+      commentSummary:s.commentSummary,commentDestination:effDest(k),commentDestinationPref:s.destPref,commentDecision:s.commentDecision,commentApprovedSig:s.commentSig,milestoneDecision:s.milestoneDecision}})};
+}
+function localPlan(){
+  var p={teams:{},milestones:[],tasks:[],notes:{},left:[],lookups:[]};
+  CANDS.forEach(function(k){
+    var s=S.c[k.id],is=issues(k),ms=msOf(s.matchId),on=oppNameK(k),mn=msNameK(k);
+    if(s.oppLookup)p.lookups.push(s.oppLookup+' \u2014 for \u201c'+s.subject+'\u201d');
+    if(msUsed(k))p.milestones.push({pm:k.proposedMilestone,opp:on});
+    if(s.taskDecision==='approved'){
+      if(is.t.length)p.left.push(s.subject+' (HoK) \u2014 '+is.t[0]);
+      else{p.tasks.push({s:s,ms:mn});p.teams['Deal team: '+on]=1;p.teams['Milestone team: '+mn]=1}
+    }
+    if(s.commentDecision==='approved'){
+      if(is.c.length)p.left.push(s.subject+' (update) \u2014 '+is.c[0]);
+      else{var d=effDest(k),key=d==='milestone'?'milestone '+q(mn)+(ms?'':' (new)'):'opportunity '+q(on);
+        (p.notes[key]=p.notes[key]||[]).push({d:s.completionDate,t:s.commentSummary.trim()});p.teams['Deal team: '+on]=1;if(d==='milestone')p.teams['Milestone team: '+mn]=1}
+    }
+  });
+  p.tasks.sort(function(a,b){return a.s.completionDate<b.s.completionDate?-1:a.s.completionDate>b.s.completionDate?1:0});
+  return p;
+}
+function list(items){var u=el('ul');items.forEach(function(x){u.appendChild(el('li',null,x))});return u}
+function sec(b,title,items){if(!items.length)return;b.appendChild(el('h3',null,title));b.appendChild(list(items))}
+function showPreview(plan,finishing){
+  var b=$('dlgBody');b.textContent='';$('dlgFinish').hidden=true;$('dlgNote').hidden=true;$('dlgTitle').textContent=finishing?'Ready to finish?':'What will be written';
+  if(plan){
+    b.appendChild(el('p','small','This is the final plan I checked against live MSX. Confirm it in chat.'));
+    sec(b,'Teams I\u2019ll add you to (only if you\u2019re missing)',(plan.memberships||[]).map(function(x){return (x.entity==='milestone'?'Milestone team: ':'Deal team: ')+(x.recordName||x.recordId)}));
+    sec(b,'New milestones',(plan.milestones||[]).map(function(x){return x.name+' \u2014 '+x.category+', due '+short(x.date)}));
+    sec(b,'HoK to log',(plan.tasks||[]).map(function(x){return short(x.date)+' \u00b7 '+x.subject+' \u2014 '+x.category+' on '+(x.milestoneName||'milestone')}));
+    if((plan.comments||[]).length){b.appendChild(el('h3',null,'Updates to post'));plan.comments.forEach(function(x){b.appendChild(el('div',null,'On the '+x.targetType+' '+q(x.targetName||x.targetId)));b.appendChild(el('blockquote',null,x.text))})}
+    sec(b,'Not included',(plan.excluded||[]).map(function(x){return (x.subject||x.candidateId)+' \u2014 '+(x.reasons||[]).join('; ')}));
+  }else{
+    var p=localPlan();
+    b.appendChild(el('p','small','A quick preview from this page. Before anything is written I re-check it all against live MSX and ask you to confirm in chat.'));
+    if(!p.tasks.length&&!Object.keys(p.notes).length&&!p.lookups.length)b.appendChild(el('p',null,'Nothing yet \u2014 click Include on the entries and updates you want.'));
+    sec(b,'Teams I\u2019ll add you to (only if you\u2019re missing)',Object.keys(p.teams));
+    sec(b,'New milestones',p.milestones.map(function(x){return x.pm.name+' \u2014 '+x.pm.category+', due '+short(x.pm.date)+', on '+x.opp}));
+    sec(b,'HoK to log ('+p.tasks.length+')',p.tasks.map(function(x){return short(x.s.completionDate)+' \u00b7 '+x.s.subject+' \u2014 '+x.s.category+' on '+x.ms}));
+    var keys=Object.keys(p.notes);if(keys.length){b.appendChild(el('h3',null,'Updates to post ('+keys.length+')'));keys.forEach(function(g){b.appendChild(el('div',null,'On the '+g));p.notes[g].sort(function(a,c){return a.d<c.d?1:-1});b.appendChild(el('blockquote',null,p.notes[g].map(function(e){return e.t}).join('\n')))})}
+    sec(b,'Opportunities I\u2019ll look up first (nothing is written until you pick their milestones)',p.lookups);
+    sec(b,'Approved but can\u2019t be written',p.left);
+    if(finishing){var open=CANDS.filter(function(k){return cardState(k)==='open'}).length,any=p.tasks.length||Object.keys(p.notes).length||p.lookups.length;
+      $('dlgNote').textContent=(open?open+' card'+(open===1?' is':'s are')+' still undecided \u2014 nothing from '+(open===1?'it':'them')+' will be written. ':'')+(any?'Finishing locks this page. Then go back to chat and type \u201cpost to msx\u201d.':'There\u2019s nothing to write yet. Click Include on what you want first.');
+      $('dlgNote').hidden=false;$('dlgFinish').hidden=false;$('dlgFinish').disabled=!any}
+  }
+  $('dlg').showModal();
+}
+function disableAll(){document.querySelectorAll('input,select,textarea,button').forEach(function(x){if(x.id!=='preview'&&x.id!=='dlgClose')x.disabled=true})}
+function finishReview(){$('dlg').close();S.finished=true;persist();update();window.scrollTo(0,0);announce('Review finished. Go back to chat and type post to msx.')}
+function reopen(){S.finished=false;document.querySelectorAll('input,select,textarea,button').forEach(function(x){x.disabled=false});persist();update();announce('You can edit again. Click Finish review when you\u2019re done.')}
+function lock(){S.locked=true;update()}
+function showResults(res){
+  var p=$('results');p.hidden=false;p.textContent='';p.appendChild(el('h2',null,'What happened'));
+  var icon={completed:'\u2713',created:'\u2713',verified:'\u2713',skipped:'\u2013',failed:'\u2717',unknown:'?'},u=el('ul','res');
+  (res||[]).forEach(function(x){u.appendChild(el('li',null,(icon[x.state]||'\u2022')+' '+(x.label||x.actionId)+(x.detail?' \u2014 '+x.detail:'')))});p.appendChild(u);
+  p.scrollIntoView();
+}
+window.MSXReview={getState:getState,showPlan:function(pl){showPreview(pl)},showResults:showResults,lock:lock,clearSaved:function(){try{localStorage.removeItem(KEY)}catch(e){}}};
+
+initState();build();update();
+if(S.savedAt)$('saveStatus').textContent='Picked up where you left off ('+new Date(S.savedAt).toLocaleString()+')';
+$('logAll').addEventListener('click',logAll);
+$('preview').addEventListener('click',function(){showPreview(null)});
+$('finish').addEventListener('click',function(){showPreview(null,true)});
+$('dlgFinish').addEventListener('click',finishReview);
+$('reopen').addEventListener('click',reopen);
+$('dlgClose').addEventListener('click',function(){$('dlg').close()});
+window.addEventListener('beforeunload',function(e){if(S.dirty&&!S.locked){e.preventDefault();e.returnValue=''}});
+})();
+</script>
+</body>
+</html>
