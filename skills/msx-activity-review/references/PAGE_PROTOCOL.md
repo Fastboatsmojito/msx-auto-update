@@ -97,7 +97,10 @@ running counts, **See what will be written** (a plain-list preview: teams, new m
 **Finish review**. There is **no write button**: writes need the SE's MSX session and a "yes" in chat. **Finish review** opens the same
 preview titled "Ready to finish?", notes how many cards are still undecided (nothing from them is written), and is disabled when nothing is
 included. Finishing sets `finished: true`, disables all edits, and shows a banner: "Review finished. Go back to chat and type **post to msx**…"
-with **Make more changes** (sets `finished: false`). The footer says the same.
+with **Make more changes** (sets `finished: false`). The footer says the same. The banner also has **Copy "post to msx"**: the page cannot send
+anything to chat, so this only puts that exact phrase on the clipboard for the SE to paste in chat and press Enter. It uses the Clipboard API and
+falls back to selecting the phrase; if copying fails it shows the phrase to type. It never posts, writes or reaches the network, changes no
+decision, and is disabled once the page is locked.
 
 Button → decision mapping (stored in the Decisions shape):
 
@@ -113,6 +116,7 @@ Button → decision mapping (stored in the Decisions shape):
 | **Change opportunity** → **Use it** (unknown ID) | `oppLookup` = the normalized ID, `matchId` null; **Undo** clears `oppLookup` and restores the drafted match |
 | **Skip this card** / **Decide next week** / **Change my mind** | both decisions rejected / `held` / pending |
 | **Finish review** / **Make more changes** | `finished` true / false (no decision changes) |
+| **Copy "post to msx"** (finished banner) | none — copies the phrase only; no write |
 | **Include all ready** | both sections approved on clean cards (HoK only if the update is empty) |
 
 A new milestone is created only if an approved HoK or an approved milestone update uses it; `milestoneDecision: approved` alone writes nothing.
