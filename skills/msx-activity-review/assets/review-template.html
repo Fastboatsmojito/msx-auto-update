@@ -77,6 +77,8 @@ dialog{max-width:720px;width:92vw;border:1px solid var(--line);border-radius:12p
 .plan blockquote{margin:4px 0 10px;padding:6px 10px;background:var(--soft);border-radius:6px;white-space:pre-wrap}
 .res li{margin:4px 0}
 .finished{margin:10px 0;padding:12px 14px;border-radius:10px;background:var(--good-soft);color:var(--good);display:flex;gap:12px;align-items:center;flex-wrap:wrap}.finished span{flex:1;min-width:220px}
+.finished .copied{flex-basis:100%;font-size:13px}.finished .copied:empty{display:none}
+.finished code{font-family:ui-monospace,Consolas,monospace;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 8px;user-select:all}
 .sr{position:absolute;left:-9999px}
 </style>
 </head>
@@ -85,7 +87,7 @@ dialog{max-width:720px;width:92vw;border:1px solid var(--line);border-radius:12p
   <h1>Your MSX activity review</h1>
   <div class="sub" id="who"></div>
   <div class="chips" id="chips"></div>
-  <div id="finished" class="finished" hidden><span><b>Review finished.</b> Go back to chat and type <b>post to msx</b>. I&rsquo;ll re-check everything against live MSX and show you the final list before anything is written.</span><button id="reopen" type="button">Make more changes</button></div>
+  <div id="finished" class="finished" hidden><span><b>Review finished.</b> Go back to chat and type <b>post to msx</b> (or copy it here and paste it). I&rsquo;ll re-check everything against live MSX and show you the final list before anything is written.</span><button class="go" id="copyPhrase" type="button">Copy &ldquo;post to msx&rdquo;</button><button id="reopen" type="button">Make more changes</button><div class="copied" id="copyStatus"></div><code id="phrase" hidden></code></div>
   <div id="notices"></div>
   <div class="summary"><p id="summary"></p><button class="go" id="logAll" type="button">Include all ready</button></div>
   <div id="bulkReport" class="small"></div>
@@ -535,7 +537,7 @@ function update(){
   S.notices.slice(-3).forEach(function(x){nb.appendChild(el('div','notice',x))});
   $('finished').hidden=!S.finished||S.locked;$('finish').hidden=S.finished||S.locked;
   if(S.locked||S.finished)disableAll();
-  if(S.finished&&!S.locked)$('reopen').disabled=false;
+  if(S.finished&&!S.locked){$('reopen').disabled=false;$('copyPhrase').disabled=false}
 }
 function logAll(){
   if(S.locked||S.finished)return;var c=0;
@@ -597,7 +599,22 @@ function showPreview(plan,finishing){
 }
 function disableAll(){document.querySelectorAll('input,select,textarea,button').forEach(function(x){if(x.id!=='preview'&&x.id!=='dlgClose')x.disabled=true})}
 function finishReview(){$('dlg').close();S.finished=true;persist();update();window.scrollTo(0,0);announce('Review finished. Go back to chat and type post to msx.')}
-function reopen(){S.finished=false;document.querySelectorAll('input,select,textarea,button').forEach(function(x){x.disabled=false});persist();update();announce('You can edit again. Click Finish review when you\u2019re done.')}
+/* Copies the chat trigger phrase only; the page cannot send it to chat and never writes. */
+var PHRASE='post to msx';
+function copyPhrase(){
+  if(S.locked||!S.finished)return;
+  var st=$('copyStatus'),ph=$('phrase');
+  function ok(){st.textContent='Copied \u2014 paste in chat and press Enter.';announce('Copied post to msx. Paste it in chat and press Enter.')}
+  function fallback(){
+    ph.hidden=false;var copied=false;
+    try{var rg=document.createRange(),sel=window.getSelection();rg.selectNodeContents(ph);sel.removeAllRanges();sel.addRange(rg);copied=document.execCommand('copy')}catch(e){}
+    if(copied)ok();else{st.textContent='Couldn\u2019t copy here. Type this in chat and press Enter:';announce('Couldn\u2019t copy. Type post to msx in chat.')}
+  }
+  var cb=typeof navigator!=='undefined'&&navigator.clipboard;
+  if(cb&&cb.writeText){try{cb.writeText(PHRASE).then(ok,fallback);return}catch(e){}}
+  fallback();
+}
+function reopen(){S.finished=false;$('copyStatus').textContent='';$('phrase').hidden=true;document.querySelectorAll('input,select,textarea,button').forEach(function(x){x.disabled=false});persist();update();announce('You can edit again. Click Finish review when you\u2019re done.')}
 function lock(){S.locked=true;update()}
 function showResults(res){
   var p=$('results');p.hidden=false;p.textContent='';p.appendChild(el('h2',null,'What happened'));
@@ -614,6 +631,8 @@ $('preview').addEventListener('click',function(){showPreview(null)});
 $('finish').addEventListener('click',function(){showPreview(null,true)});
 $('dlgFinish').addEventListener('click',finishReview);
 $('reopen').addEventListener('click',reopen);
+$('phrase').textContent=PHRASE;
+$('copyPhrase').addEventListener('click',copyPhrase);
 $('dlgClose').addEventListener('click',function(){$('dlg').close()});
 window.addEventListener('beforeunload',function(e){if(S.dirty&&!S.locked){e.preventDefault();e.returnValue=''}});
 })();

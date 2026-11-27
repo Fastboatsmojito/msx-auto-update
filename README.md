@@ -57,7 +57,7 @@ before copying; this installs the proposed branch, not released `main`. Return t
 4. One card per piece of work. Each card shows the opportunity and milestone (name + MSX ID), an editable **HoK entry** and an optional **milestone update**, each with **Include / Skip**.
    - Wrong opportunity? **Change opportunity** and type its ID; the agent picks a best-guess milestone for you to confirm.
    - Similar HoK already on the milestone? The card says so and won't log a duplicate.
-5. Click **Finish review**, then type **post to msx** in chat. The page has no write button by design.
+5. Click **Finish review**, then type **post to msx** in chat (or click **Copy "post to msx"** and paste it). The page has no write button by design; the copy button only copies the phrase.
 6. The agent re-checks live MSX, shows the final list and coverage limitations, and writes only after you say **yes** (MSX also prompts per write).
 
 Use **"Run my MSX review for the last 7 days"** for the default full portfolio.

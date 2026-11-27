@@ -42,7 +42,7 @@ class Element {
   scrollIntoView() {}
 }
 
-function page(data, storage = new Map()) {
+function page(data, storage = new Map(), navigator = {}) {
   const all = [], ids = {};
   const createElement = tag => {
     const el = new Element(tag);
@@ -62,7 +62,7 @@ function page(data, storage = new Map()) {
     querySelectorAll: () => all.filter(x => ['input', 'select', 'textarea', 'button'].includes(x.tagName))
   };
   runInNewContext(script, {
-    document, window, CSS: { supports: () => true },
+    document, window, navigator, CSS: { supports: () => true },
     localStorage: {
       getItem: key => storage.get(key) ?? null,
       setItem: (key, value) => storage.set(key, value),
@@ -225,6 +225,37 @@ test('same-owner edits, approval resets, duplicate gating and chat-only write bo
   assert.equal(resumed.api.getState().candidates.find(x => x.id === 'c01').taskDecision, 'pending');
   assert.deepEqual(Object.keys(p.api).sort(), ['clearSaved', 'getState', 'lock', 'showPlan', 'showResults']);
   assert.doesNotMatch(script, /\b(fetch|XMLHttpRequest|WebSocket|dataverse_write)\s*\(/);
+});
+
+test('finished banner copies exactly "post to msx" without writing or changing decisions', async () => {
+  const copied = [];
+  const p = page(clone(demo), new Map(), { clipboard: { writeText: text => { copied.push(text); return Promise.resolve(); } } });
+  p.ids.logAll.click();
+  p.ids.copyPhrase.click();
+  assert.deepEqual(copied, [], 'copy is inert before Finish review');
+  p.ids.finish.click();
+  p.ids.dlgFinish.click();
+  assert.equal(p.ids.finished.hidden, false);
+  assert.equal(p.ids.copyPhrase.disabled, false);
+  const before = JSON.stringify({ ...p.api.getState(), savedAt: null });
+  p.ids.copyPhrase.click();
+  await Promise.resolve();
+  assert.deepEqual(copied, ['post to msx']);
+  assert.match(p.ids.copyStatus.textContent, /Copied/);
+  assert.equal(JSON.stringify({ ...p.api.getState(), savedAt: null }), before);
+  p.api.lock();
+  assert.equal(p.ids.finished.hidden, true);
+  p.ids.copyPhrase.events.click();
+  assert.deepEqual(copied, ['post to msx'], 'copy is inert once locked');
+
+  const offline = page(clone(demo));
+  offline.ids.logAll.click();
+  offline.ids.finish.click();
+  offline.ids.dlgFinish.click();
+  offline.ids.copyPhrase.click();
+  assert.equal(offline.ids.phrase.hidden, false);
+  assert.equal(offline.ids.phrase.textContent, 'post to msx');
+  assert.match(offline.ids.copyStatus.textContent, /Type this in chat/);
 });
 
 test('package links, token, synthetic fixture and procedural retrieval safeguards stay consistent', () => {

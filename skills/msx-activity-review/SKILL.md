@@ -88,7 +88,7 @@ Detailed rules: [RULES](references/RULES.md). Queries: [MSX_OPERATIONS](referenc
 
 1. Render `assets/review-template.html` with the review data inlined (escape `<`, `>`, `&`, U+2028/2029 in the JSON block). Write to `reviews\<id>\review.html`.
 2. `open_canvas` (browser) with the `file://` URL. If it cannot load, use § 5.
-3. Tell the user: review and edit in the page, click **Finish review**, then type **"post to msx"** here. The page has no write button by design. Accept "done" as a synonym. Protocol and autosave: [PAGE_PROTOCOL](references/PAGE_PROTOCOL.md).
+3. Tell the user: review and edit in the page, click **Finish review**, then type **"post to msx"** here (or click **Copy "post to msx"** in the finished banner and paste it). The page has no write button by design; the copy button only copies text. Accept "done" as a synonym. Protocol and autosave: [PAGE_PROTOCOL](references/PAGE_PROTOCOL.md).
 
 ### 3.2 Read decisions
 
